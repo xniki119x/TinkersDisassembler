@@ -20,7 +20,7 @@ group = 'f1cont.niki119.tinkersdisassemble'
 version = '1.1.0'
 
 java {
-    archivesBaseName = 'TinkersDisassembler'
+    archivesBaseName = 'TinkersDisassemble'
     toolchain.languageVersion = JavaLanguageVersion.of(8)
 }
 
