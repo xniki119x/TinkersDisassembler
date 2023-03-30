@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "f1cont.niki119.tinkersdisassemble.mixins",
+  "refmap": "mixins.tinkersdisassemble.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinIncrementalModifierRecipe",
+    "MixinModifierRecipe",
+    "MixinOverslimeModifierRecipe"
+  ],
+  "client": [],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
