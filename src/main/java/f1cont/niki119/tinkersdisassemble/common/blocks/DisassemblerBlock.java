@@ -104,7 +104,7 @@ public class DisassemblerBlock extends BaseBlock implements IWaterLoggable {
                             while (amount >= perInput) {
                                 amount -= perInput;
                                 ItemStack stack1 = input.getMatchingStacks()[0].copy();
-                                player.addItemStackToInventory(stack1);
+                                if(!player.addItemStackToInventory(stack1)) player.dropItem(stack1, false);
                             }
                             toolStack.removeModifier(modifier, 1);
                             level--;
@@ -126,7 +126,7 @@ public class DisassemblerBlock extends BaseBlock implements IWaterLoggable {
                             ItemStack stack1 = si.getMatchingStacks().get(recipe.toString().contains("recapitated")?11:0);
                             ItemStack stack2 = stack1.copy();
                             stack2.setCount(amount);
-                            player.addItemStackToInventory(stack2);
+                            if(!player.addItemStackToInventory(stack2)) player.dropItem(stack2, false);
                         }
                         toolStack.removeModifier(modifier, 1);
                     } else {
@@ -148,7 +148,7 @@ public class DisassemblerBlock extends BaseBlock implements IWaterLoggable {
                             Ingredient input = ir.getInput();
                             ItemStack stack1 = input.getMatchingStacks()[0].copy();
                             stack1.setCount(cap / 10);
-                            player.addItemStackToInventory(stack1);
+                            if(!player.addItemStackToInventory(stack1)) player.dropItem(stack1, false);
                             toolStack.removeModifier(modifier, 1);
                         }
                     }
@@ -164,7 +164,7 @@ public class DisassemblerBlock extends BaseBlock implements IWaterLoggable {
                         IToolPart part = requirement.getPart();
                         IMaterial material = materials.get(i);
                         ToolPartItem partItem = (ToolPartItem) part.asItem();
-                        player.addItemStackToInventory(partItem.withMaterial(material));
+                        if(!player.addItemStackToInventory(partItem.withMaterial(material))) player.dropItem(partItem.withMaterial(material), false);
                     }
                 }
                 player.setHeldItem(handIn, ItemStack.EMPTY);
