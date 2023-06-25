@@ -3,39 +3,38 @@ package f1cont.niki119.tinkersdisassemble.common.blocks;
 import f1cont.niki119.tinkersdisassemble.common.IRecipeWithInputs;
 import f1cont.niki119.tinkersdisassemble.common.TinkersDisassemble;
 import f1cont.niki119.tinkersdisassemble.common.IRecipeWithInput;
-import net.minecraft.block.*;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.pathfinding.PathType;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.ForgeRegistry;
-import net.minecraftforge.registries.RegistryManager;
-import slimeknights.mantle.recipe.SizedIngredient;
-import slimeknights.tconstruct.TConstruct;
-import slimeknights.tconstruct.library.materials.definition.IMaterial;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import slimeknights.mantle.recipe.ingredient.SizedIngredient;
+import slimeknights.tconstruct.library.materials.definition.MaterialVariant;
 import slimeknights.tconstruct.library.modifiers.*;
-import slimeknights.tconstruct.library.recipe.RecipeTypes;
-import slimeknights.tconstruct.library.recipe.modifiers.ModifierRecipeLookup;
-import slimeknights.tconstruct.library.recipe.modifiers.ModifierRequirements;
+import slimeknights.tconstruct.library.modifiers.impl.IncrementalModifier;
+import slimeknights.tconstruct.library.recipe.TinkerRecipeTypes;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.AbstractModifierRecipe;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.IncrementalModifierRecipe;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.ModifierRecipe;
@@ -43,7 +42,8 @@ import slimeknights.tconstruct.library.recipe.modifiers.adding.OverslimeModifier
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.tools.definition.PartRequirement;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
-import slimeknights.tconstruct.library.tools.item.ToolItem;
+import slimeknights.tconstruct.library.tools.item.IModifiableDisplay;
+import slimeknights.tconstruct.library.tools.nbt.MaterialNBT;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
 import slimeknights.tconstruct.library.tools.part.ToolPartItem;
@@ -52,47 +52,103 @@ import slimeknights.tconstruct.tools.modifiers.slotless.OverslimeModifier;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class DisassemblerBlock extends BaseBlock implements IWaterLoggable {
+public class DisassemblerBlock extends BaseBlock implements SimpleWaterloggedBlock
+{
     protected static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     private static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
-    private static final VoxelShape TABLE_SHAPE = VoxelShapes.or(
-            Block.makeCuboidShape(0.0D, 12.0D, 0.0D, 16.0D, 16.0D, 16.0D),  // top
-            Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 4.0D, 15.0D, 4.0D),     // leg
-            Block.makeCuboidShape(12.0D, 0.0D, 0.0D, 16.0D, 15.0D, 4.0D),   // leg
-            Block.makeCuboidShape(12.0D, 0.0D, 12.0D, 16.0D, 15.0D, 16.0D), // leg
-            Block.makeCuboidShape(0.0D, 0.0D, 12.0D, 4.0D, 15.0D, 16.0D)).simplify();
+    private static final VoxelShape TABLE_SHAPE = Shapes.or(Block.box(0.0, 12.0, 0.0, 16.0, 16.0, 16.0), Block.box(0.0, 0.0, 0.0, 4.0, 15.0, 4.0), Block.box(12.0, 0.0, 0.0, 16.0, 15.0, 4.0), Block.box(12.0, 0.0, 12.0, 16.0, 15.0, 16.0), Block.box(0.0, 0.0, 12.0, 4.0, 15.0, 16.0)).optimize();
 
-    public DisassemblerBlock() {
-        super("disassembler", AbstractBlock.Properties.create(Material.WOOD).hardnessAndResistance(0.5F).sound(SoundType.WOOD));
-        this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.NORTH).with(WATERLOGGED, false));
+    public DisassemblerBlock()
+    {
+        super("disassembler", BlockBehaviour.Properties.of(Material.WOOD)
+                .strength(0.5F)
+                .sound(SoundType.WOOD));
+        this.registerDefaultState(this.getStateDefinition().any()
+                 .setValue(FACING, Direction.NORTH)
+                .setValue(WATERLOGGED, false));
     }
 
-    public void disassembleTool(World world, PlayerEntity player, Hand handIn) {
-        ItemStack stack = player.getHeldItem(handIn);
-        if (stack.getItem() instanceof ToolItem) {
+    @Override
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player,
+                                 InteractionHand handIn, BlockHitResult hit)
+    {
+        if (!worldIn.isClientSide)
+        {
+            disassembleTool(worldIn, player, handIn);
+        }
+        return super.use(state, worldIn, pos, player, handIn, hit);
+    }
+
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+        return TABLE_SHAPE;
+    }
+    //
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context)
+    {
+        boolean flag = context.getLevel().getFluidState(context.getClickedPos()).getType() == Fluids.WATER;
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()).setValue(WATERLOGGED, flag);
+    }
+    @Override
+    public BlockState rotate(BlockState state, Rotation rot) {
+        return (BlockState)state.setValue(FACING, rot.rotate((Direction)state.getValue(FACING)));
+    }
+    @Override
+    public BlockState mirror(BlockState state, Mirror mirrorIn) {
+        return state.rotate(mirrorIn.getRotation((Direction)state.getValue(FACING)));
+    }
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(new Property[]{FACING, WATERLOGGED});
+    }
+    @Override
+    public FluidState getFluidState(BlockState state) {
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+    }
+    @Override
+    public boolean isPathfindable(BlockState state, BlockGetter worldIn, BlockPos pos, PathComputationType type) {
+        return false;
+    }
+
+    public void disassembleTool(Level world, Player player, InteractionHand handIn)
+    {
+        ItemStack stack = player.getItemInHand(handIn);
+        System.out.println(stack.getItem().getClass());
+        if (stack.getItem() instanceof IModifiableDisplay)
+        {
             ToolStack toolStack = ToolStack.from(stack);
-            for (ModifierEntry entry : toolStack.getUpgrades().getModifiers()) {
+            for (ModifierEntry entry : toolStack.getUpgrades().getModifiers())
+            {
                 Modifier modifier = entry.getModifier();
                 RecipeManager rm = world.getRecipeManager();
-                List<ITinkerStationRecipe> recipes = rm.getRecipesForType(RecipeTypes.TINKER_STATION);
-                List<AbstractModifierRecipe> modifierRecipes = recipes
-                        .stream()
+                List<ITinkerStationRecipe> recipes = rm.getAllRecipesFor(TinkerRecipeTypes.TINKER_STATION.get());
+                List<AbstractModifierRecipe> modifierRecipes = recipes.stream()
                         .filter(input -> input instanceof AbstractModifierRecipe)
                         .map(p -> (AbstractModifierRecipe) p)
                         .collect(Collectors.toList());
-                List<AbstractModifierRecipe> recipesForModifier = modifierRecipes.stream().filter(i -> i.getDisplayResult().getModifier().equals(modifier)).collect(Collectors.toList());
-                if (!recipesForModifier.isEmpty()) {
+                List<AbstractModifierRecipe> recipesForModifier = modifierRecipes.stream()
+                        .filter(i -> i.getDisplayResult()
+                                .getModifier()
+                                .equals(modifier))
+                        .collect(Collectors.toList());
+                if (!recipesForModifier.isEmpty())
+                {
                     AbstractModifierRecipe recipe1 = recipesForModifier.get(0);
 
-                    if (recipe1 instanceof IncrementalModifierRecipe) {
+                    if (recipe1 instanceof IncrementalModifierRecipe)
+                    {
                         TinkersDisassemble.LOGGER.info("IncrementalModifierRecipe");
-                        List<IncrementalModifierRecipe> incrementalModifierRecipes = recipes
-                                .stream()
+                        List<IncrementalModifierRecipe> incrementalModifierRecipes = recipes.stream()
                                 .filter(input -> input instanceof IncrementalModifierRecipe)
                                 .map(p -> (IncrementalModifierRecipe) p)
                                 .collect(Collectors.toList());
-                        List<IncrementalModifierRecipe> lll = incrementalModifierRecipes.stream().filter(i -> i.getDisplayResult().getModifier().equals(modifier)).collect(Collectors.toList());
+                        List<IncrementalModifierRecipe> lll = incrementalModifierRecipes.stream()
+                                .filter(i -> i.getDisplayResult()
+                                        .getModifier()
+                                        .equals(modifier))
+                                .collect(Collectors.toList());
                         IncrementalModifierRecipe recipe = lll.get(0);
                         IRecipeWithInput ir = ((IRecipeWithInput) recipe);
                         Ingredient input = ir.getInput();
@@ -100,123 +156,112 @@ public class DisassemblerBlock extends BaseBlock implements IWaterLoggable {
                         int perInput = ir.getAmountPerInput();
                         int neededPerLevel = ir.getNeededPerLevel();
                         int amount = ((IncrementalModifier) modifier).getAmount(toolStack);
-                        while (level >= 1) {
-                            while (amount >= perInput) {
+                        while (level >= 1)
+                        {
+                            while (amount >= perInput)
+                            {
                                 amount -= perInput;
-                                ItemStack stack1 = input.getMatchingStacks()[0].copy();
-                                if(!player.addItemStackToInventory(stack1)) player.dropItem(stack1, false);
+                                ItemStack stack1 = input.getItems()[0].copy();
+                                if (!player.addItem(stack1))
+                                {
+                                    player.drop(stack1, false);
+                                }
                             }
-                            toolStack.removeModifier(modifier, 1);
+                            toolStack.removeModifier(modifier.getId(), 1);
                             level--;
                             amount = neededPerLevel;
                         }
-                    } else if (recipe1 instanceof ModifierRecipe) {
+                    }
+                    else if (recipe1 instanceof ModifierRecipe)
+                    {
                         TinkersDisassemble.LOGGER.info("ModifierRecipe");
-                        List<ModifierRecipe> modifierRecipes1 = recipes
-                                .stream()
+                        List<ModifierRecipe> modifierRecipes1 = recipes.stream()
                                 .filter(input -> input instanceof ModifierRecipe)
                                 .map(p -> (ModifierRecipe) p)
                                 .collect(Collectors.toList());
-                        List<ModifierRecipe> lll = modifierRecipes1.stream().filter(i -> i.getDisplayResult().getModifier().equals(modifier)).collect(Collectors.toList());
+                        List<ModifierRecipe> lll = modifierRecipes1.stream()
+                                .filter(i -> i.getDisplayResult()
+                                        .getModifier()
+                                        .equals(modifier))
+                                .collect(Collectors.toList());
                         ModifierRecipe recipe = lll.get(0);
                         IRecipeWithInputs rwi = (IRecipeWithInputs) recipe;
                         List<SizedIngredient> lsi = rwi.getInputs();
-                        for (SizedIngredient si : lsi) {
+                        for (SizedIngredient si : lsi)
+                        {
                             int amount = si.getAmountNeeded();
-                            ItemStack stack1 = si.getMatchingStacks().get(recipe.toString().contains("recapitated")?11:0);
+                            ItemStack stack1 = si.getMatchingStacks()
+                                    .get(recipe.toString()
+                                            .contains("recapitated") ? 11 : 0);
                             ItemStack stack2 = stack1.copy();
                             stack2.setCount(amount);
-                            if(!player.addItemStackToInventory(stack2)) player.dropItem(stack2, false);
+                            if (!player.addItem(stack2))
+                            {
+                                player.drop(stack2, false);
+                            }
                         }
-                        toolStack.removeModifier(modifier, 1);
-                    } else {
+                        toolStack.removeModifier(modifier.getId(), 1);
+                    }
+                    else
+                    {
                         TinkersDisassemble.LOGGER.info("Other");
                     }
-                } else {
-                    if (modifier instanceof OverslimeModifier) {
+                }
+                else
+                {
+                    if (modifier instanceof OverslimeModifier)
+                    {
                         OverslimeModifier om = (OverslimeModifier) modifier;
-                        List<OverslimeModifierRecipe> modifierRecipes1 = recipes
-                                .stream()
+                        List<OverslimeModifierRecipe> modifierRecipes1 = recipes.stream()
                                 .filter(input -> input instanceof OverslimeModifierRecipe)
                                 .map(p -> (OverslimeModifierRecipe) p)
                                 .collect(Collectors.toList());
-                        List<OverslimeModifierRecipe> recipesForModifier1 = modifierRecipes1.stream().filter(i -> i.getDisplayResult().getModifier().equals(modifier)).collect(Collectors.toList());
-                        if (!recipesForModifier1.isEmpty()) {
+                        List<OverslimeModifierRecipe> recipesForModifier1 = modifierRecipes1.stream()
+                                .filter(i -> i.getDisplayResult()
+                                        .getModifier()
+                                        .equals(modifier))
+                                .collect(Collectors.toList());
+                        if (!recipesForModifier1.isEmpty())
+                        {
                             int cap = om.getOverslime(toolStack);
                             OverslimeModifierRecipe recipe = recipesForModifier1.get(1);
                             IRecipeWithInput ir = ((IRecipeWithInput) recipe);
                             Ingredient input = ir.getInput();
-                            ItemStack stack1 = input.getMatchingStacks()[0].copy();
+                            ItemStack stack1 = input.getItems()[0].copy();
                             stack1.setCount(cap / 10);
-                            if(!player.addItemStackToInventory(stack1)) player.dropItem(stack1, false);
-                            toolStack.removeModifier(modifier, 1);
+                            if (!player.addItem(stack1))
+                            {
+                                player.drop(stack1, false);
+                            }
+                            toolStack.removeModifier(modifier.getId(), 1);
                         }
                     }
                 }
-            }
-            List<PartRequirement> components = ((IModifiable) stack.getItem()).getToolDefinition().getData().getParts();
-            if (!components.isEmpty()) {
+          }
+            List<PartRequirement> components = ((IModifiable) stack.getItem()).getToolDefinition()
+                    .getData()
+                    .getParts();
+            if (!components.isEmpty())
+            {
 
-                List<IMaterial> materials = toolStack.getMaterialsList();
-                if (!materials.isEmpty()) {
-                    for (int i = 0; i < materials.size(); ++i) {
+                MaterialNBT materials = toolStack.getMaterials();
+                if (materials.size()>0)
+                {
+                    for (int i = 0; i < materials.size(); ++i)
+                    {
                         PartRequirement requirement = components.get(i);
                         IToolPart part = requirement.getPart();
-                        IMaterial material = materials.get(i);
+                        MaterialVariant material = materials.get(i);
                         ToolPartItem partItem = (ToolPartItem) part.asItem();
-                        if(!player.addItemStackToInventory(partItem.withMaterial(material))) player.dropItem(partItem.withMaterial(material), false);
+                        if (!player.addItem(partItem.withMaterial(material.getVariant())))
+                        {
+                            player.drop(partItem.withMaterial(material.getVariant()), false);
+                        }
                     }
                 }
-                player.setHeldItem(handIn, ItemStack.EMPTY);
+                player.setItemInHand(handIn, ItemStack.EMPTY);
             }
         }
     }
 
-    @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        if (!worldIn.isRemote) {
-            disassembleTool(worldIn, player, handIn);
-        }
-        return super.onBlockActivated(state, worldIn, pos, player, handIn, hit);
-    }
-
-    @Override
-    @Deprecated
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        return TABLE_SHAPE;
-    }
-
-    @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        boolean flag = context.getWorld().getFluidState(context.getPos()).getFluid() == Fluids.WATER;
-        return this.getDefaultState().with(FACING, context.getPlacementHorizontalFacing().getOpposite()).with(WATERLOGGED, flag);
-    }
-
-    @Deprecated
-    @Override
-    public BlockState rotate(BlockState state, Rotation rot) {
-        return state.with(FACING, rot.rotate(state.get(FACING)));
-    }
-
-    @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        builder.add(FACING, WATERLOGGED);
-    }
-
-    @Deprecated
-    @Override
-    public FluidState getFluidState(BlockState state) {
-        return state.get(WATERLOGGED) ? Fluids.WATER.getStillFluidState(false) : super.getFluidState(state);
-    }
-
-    @Override
-    public boolean allowsMovement(BlockState state, IBlockReader worldIn, BlockPos pos, PathType type) {
-        return false;
-    }
-
-    @Deprecated
-    @Override
-    public BlockState mirror(BlockState state, Mirror mirrorIn) {
-        return state.rotate(mirrorIn.toRotation(state.get(FACING)));
-    }
 }
