@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[36,)"
+loaderVersion = "[40,)"
 license = "All Rights Reserved"
 [[mods]]
 modId = "tinkersdisassemble"
@@ -13,18 +13,18 @@ Disassemble your tools
 [[dependencies.tinkersdisassemble]]
 modId = "forge"
 mandatory = true
-versionRange = "[36,)"
+versionRange = "[40,)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.tinkersdisassemble]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.16.5,1.17)"
+versionRange = "[1.18,)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.tinkersdisassemble]]
 modId = "tconstruct"
 mandatory = true
-versionRange = "[3.3.4,)"
+versionRange = "[3.6.4,)"
 ordering = "NONE"
 side = "BOTH"
