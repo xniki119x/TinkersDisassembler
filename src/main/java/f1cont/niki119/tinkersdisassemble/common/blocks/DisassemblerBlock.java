@@ -43,6 +43,7 @@ import slimeknights.tconstruct.library.recipe.modifiers.adding.OverslimeModifier
 import slimeknights.tconstruct.library.recipe.tinkerstation.ITinkerStationRecipe;
 import slimeknights.tconstruct.library.tools.definition.PartRequirement;
 import slimeknights.tconstruct.library.tools.item.IModifiable;
+import slimeknights.tconstruct.library.tools.item.IModifiableDisplay;
 import slimeknights.tconstruct.library.tools.item.ToolItem;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
@@ -70,7 +71,7 @@ public class DisassemblerBlock extends BaseBlock implements IWaterLoggable {
 
     public void disassembleTool(World world, PlayerEntity player, Hand handIn) {
         ItemStack stack = player.getHeldItem(handIn);
-        if (stack.getItem() instanceof ToolItem) {
+        if (stack.getItem() instanceof IModifiableDisplay) {
             ToolStack toolStack = ToolStack.from(stack);
             for (ModifierEntry entry : toolStack.getUpgrades().getModifiers()) {
                 Modifier modifier = entry.getModifier();
