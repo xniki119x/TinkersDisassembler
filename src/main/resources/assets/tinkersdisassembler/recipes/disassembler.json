@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "www",
+    "wtw",
+    "www"
+  ],
+  "key": {
+    "t": {
+      "item": "tconstruct:tooltables",
+      "data": 3
+    },
+    "w": {
+      "item": "minecraft:crafting_table"
+    }
+  },
+  "result": {
+    "item": "tinkersdisassembler:disassembler"
+  }
+}
