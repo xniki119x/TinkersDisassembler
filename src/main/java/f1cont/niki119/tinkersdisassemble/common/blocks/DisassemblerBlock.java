@@ -1,12 +1,17 @@
 package f1cont.niki119.tinkersdisassemble.common.blocks;
 
+import f1cont.niki119.tinkersdisassemble.client.gui.DisassemblerContainer;
 import f1cont.niki119.tinkersdisassemble.common.IRecipeWithInputs;
-import f1cont.niki119.tinkersdisassemble.common.TinkersDisassemble;
+import f1cont.niki119.tinkersdisassemble.common.TinkersDisassembler;
 import f1cont.niki119.tinkersdisassemble.common.IRecipeWithInput;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -30,6 +35,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.network.NetworkHooks;
 import slimeknights.mantle.recipe.ingredient.SizedIngredient;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariant;
 import slimeknights.tconstruct.library.modifiers.*;
@@ -75,9 +81,11 @@ public class DisassemblerBlock extends BaseBlock implements SimpleWaterloggedBlo
     {
         if (!worldIn.isClientSide)
         {
-            disassembleTool(worldIn, player, handIn);
+            MenuProvider container = new SimpleMenuProvider((i, inventory, player1) -> new DisassemblerContainer(i, inventory), new TextComponent("D"));
+            NetworkHooks.openGui((ServerPlayer) player, container);
+            //disassembleTool(worldIn, player, handIn);
         }
-        return super.use(state, worldIn, pos, player, handIn, hit);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -139,7 +147,7 @@ public class DisassemblerBlock extends BaseBlock implements SimpleWaterloggedBlo
 
                     if (recipe1 instanceof IncrementalModifierRecipe)
                     {
-                        TinkersDisassemble.LOGGER.info("IncrementalModifierRecipe");
+                        TinkersDisassembler.LOGGER.info("IncrementalModifierRecipe");
                         List<IncrementalModifierRecipe> incrementalModifierRecipes = recipes.stream()
                                 .filter(input -> input instanceof IncrementalModifierRecipe)
                                 .map(p -> (IncrementalModifierRecipe) p)
@@ -174,7 +182,7 @@ public class DisassemblerBlock extends BaseBlock implements SimpleWaterloggedBlo
                     }
                     else if (recipe1 instanceof ModifierRecipe)
                     {
-                        TinkersDisassemble.LOGGER.info("ModifierRecipe");
+                        TinkersDisassembler.LOGGER.info("ModifierRecipe");
                         List<ModifierRecipe> modifierRecipes1 = recipes.stream()
                                 .filter(input -> input instanceof ModifierRecipe)
                                 .map(p -> (ModifierRecipe) p)
@@ -204,7 +212,7 @@ public class DisassemblerBlock extends BaseBlock implements SimpleWaterloggedBlo
                     }
                     else
                     {
-                        TinkersDisassemble.LOGGER.info("Other");
+                        TinkersDisassembler.LOGGER.info("Other");
                     }
                 }
                 else

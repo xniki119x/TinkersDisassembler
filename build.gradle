@@ -97,8 +97,8 @@ repositories {
 }
 dependencies {
     minecraft 'net.minecraftforge:forge:1.18.2-40.2.9'
-    implementation fg.deobf("slimeknights:tconstruct-1.18.2:3.6.4.113")
-    implementation fg.deobf("slimeknights:mantle-1.18.2:1.9.45")
+    implementation fg.deobf("slimeknights:TConstruct-1.18.2:3.6.4.113")
+    implementation fg.deobf("slimeknights:Mantle-1.18.2:1.9.45")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 jar {

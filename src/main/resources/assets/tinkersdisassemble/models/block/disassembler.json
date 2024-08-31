@@ -4,7 +4,7 @@
   "textures": {
     "all": "tinkersdisassemble:blocks/disassembler",
     "particle": "tinkersdisassemble:blocks/disassembler",
-    "top": "tinkersdisassemble:blocks/disassembler",
+    "top": "tinkersdisassemble:blocks/disassembler_top",
     "side": "tinkersdisassemble:blocks/disassembler",
     "leg": "tinkersdisassemble:blocks/disassembler",
     "bottom": "tinkersdisassemble:blocks/disassembler",
