@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "tinkersdisassembler:block/disassembler"
+      },
+      {
+        "model": "tinkersdisassembler:block/disassembler",
+        "y": 90
+      },
+      {
+        "model": "tinkersdisassembler:block/disassembler",
+        "y": 180
+      },
+      {
+        "model": "tinkersdisassembler:block/disassembler",
+        "y": 270
+      }
+    ]
+  }
+}

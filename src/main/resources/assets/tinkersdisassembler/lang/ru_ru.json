@@ -1,0 +1,5 @@
+{
+  "block.tinkersdisassembler.disassembler": "Разборщик",
+  "gui.tinkersdisassembler.disassemble": "Разобрать",
+  "gui.tinkersdisassembler.xp_cost": "Опыт: %s"
+}

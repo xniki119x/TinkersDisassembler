@@ -1,0 +1,5 @@
+{
+  "block.tinkersdisassembler.disassembler": "Disassembler",
+  "gui.tinkersdisassembler.disassemble": "Disassemble",
+  "gui.tinkersdisassembler.xp_cost": "XP: %s"
+}

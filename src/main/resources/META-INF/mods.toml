@@ -2,27 +2,27 @@ modLoader = "javafml"
 loaderVersion = "[40,)"
 license = "All Rights Reserved"
 [[mods]]
-modId = "tinkersdisassemble"
-version = "1.0.0"
-displayName = "Tinkers Disassemble"
-displayURL = "f1cont.com"
+modId = "tinkersdisassembler"
+version = "${mod_version}"
+displayName = "Tinkers Disassembler"
+displayURL = "https://terrows.ru"
 authors = "niki119"
 description = '''
 Disassemble your tools
 '''
-[[dependencies.tinkersdisassemble]]
+[[dependencies.tinkersdisassembler]]
 modId = "forge"
 mandatory = true
 versionRange = "[40,)"
 ordering = "NONE"
 side = "BOTH"
-[[dependencies.tinkersdisassemble]]
+[[dependencies.tinkersdisassembler]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.18,)"
+versionRange = "[1.18.2]"
 ordering = "NONE"
 side = "BOTH"
-[[dependencies.tinkersdisassemble]]
+[[dependencies.tinkersdisassembler]]
 modId = "tconstruct"
 mandatory = true
 versionRange = "[3.6.4,)"

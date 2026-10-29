@@ -11,12 +11,15 @@ plugins {
     id 'net.minecraftforge.gradle' version '5.1.+'
 }
 apply plugin: 'org.spongepowered.mixin'
-group = 'f1cont.niki119.tinkersdisassemble'
-version = '1.2.0'
+group = 'f1cont.niki119.tinkersdisassembler'
+version = '2.0.0'
 
 java {
-    archivesBaseName = 'TinkersDisassemble'
-    toolchain.languageVersion = JavaLanguageVersion.of(17)
+    archivesBaseName = 'TinkersDisassembler'
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+        vendor = JvmVendorSpec.matching('JetBrains')
+    }
 }
 
 minecraft {
@@ -24,11 +27,12 @@ minecraft {
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     runs {
         client {
+            jvmArgs '-XX:+AllowEnhancedClassRedefinition'
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
             mods {
-                tinkersdisassemble {
+                tinkersdisassembler {
                     source sourceSets.main
                 }
             }
@@ -38,7 +42,7 @@ minecraft {
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
             mods {
-                tinkersdisassemble {
+                tinkersdisassembler {
                     source sourceSets.main
                 }
             }
@@ -47,9 +51,9 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-            args '--mod', 'tinkersdisassemble', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            args '--mod', 'tinkersdisassembler', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
             mods {
-                tinkersdisassemble {
+                tinkersdisassembler {
                     source sourceSets.main
                 }
             }
@@ -64,7 +68,7 @@ mixin {
 }
 repositories {
     flatDir {
-         dirs '/home/niki119/IdeaProjects/TinkersDisassembler/libs'
+         dirs 'libs'
     }
 }
 dependencies {
@@ -73,10 +77,18 @@ dependencies {
     implementation fg.deobf("slimeknights:Mantle-1.18.2:1.9.45")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
+// версия мода подставляется в mods.toml при сборке: ${file.jarVersion} не работает в dev-запуске
+// (мод грузится из папок без манифеста, и FML показывает 0.0NONE)
+processResources {
+    filesMatching('META-INF/mods.toml') {
+        expand 'mod_version': project.version
+    }
+}
+
 jar {
     manifest {
         attributes([
-                "Specification-Title"     : "TinkersDisassemble",
+                "Specification-Title"     : "TinkersDisassembler",
                 "Specification-Vendor"    : "niki119",
                 "Specification-Version"   : "1", // We are version 1 of ourselves
                 "Implementation-Title"    : project.name,
